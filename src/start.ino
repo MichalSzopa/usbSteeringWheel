@@ -36,15 +36,39 @@ sensors_event_t a, g, temp;
 unsigned long StartTime;
 unsigned long ElapsedTime;
 
+int accelerator = 0;
+int brake = 0;
+
 
 void readSteeringData()
 {
   keys = tm.readButtons();
   mpu.getEvent(&a, &g, &temp);
+  long a = analogRead(A0);
+  //Serial.println(a);
+  //Serial.println(255*(a-600)/423);
+  //delay(500);
+  if(a > 600)
+  {
+    accelerator = 0;
+    brake = 255*(a-600)/423;
+  }
+  else if(a < 500)
+  {
+    accelerator = (-51)*a/100 + 255;
+    brake = 0;
+  }
+  else
+  {
+    accelerator = 0;
+    brake = 0;
+  }
 }
 
 void setJoystick()
 {
+  Joystick.setYAxis(brake);
+  Joystick.setZAxis(accelerator);
   { // button 0
     int currentButtonState = !digitalRead(pinToButtonMap);
     if (currentButtonState != lastButtonState[0])
@@ -171,11 +195,17 @@ void setup() {
   /// Joystick part
   // Initialize Button Pins
   pinMode(4, INPUT_PULLUP);
+
+  pinMode(A0, INPUT_PULLUP);
   
   // Initialize Joystick Library
   Joystick.begin();
   Joystick.setXAxisRange(-255, 255);
-  Joystick.setYAxisRange(-255, 255);
+  Joystick.setYAxisRange(0, 255);
+  Joystick.setZAxisRange(0, 255);
+  Joystick.setAcceleratorRange(0, 255);
+  Joystick.setBrakeRange(0, 255);
+  
 
   /// Accelerometer part
     
@@ -196,7 +226,7 @@ void setup() {
 
 
 void loop() {
-  
+
 for(int j=0; j<3; j++)
  {
   readSteeringData();
@@ -205,32 +235,6 @@ for(int j=0; j<3; j++)
  }
 
   readAndPrintTelemetry();
- /*%Aif((a.acceleration.x > 0) && (fabs(steeringWheelPosition - 255 * atan(a.acceleration.y / a.acceleration.x)/(M_PI/2)) > 5) && (a.acceleration.x < 8))
-  {
-    steeringWheelPosition = 255 * atan(a.acceleration.y / a.acceleration.x)/(M_PI/2);
-    Joystick.setXAxis(steeringWheelPosition);
-  }/*
   
   
-
-/*
-  for(int j=0; j<3; j++)
- {
-  mpu.getEvent(&a, &g, &temp);
-  ElapsedTime = millis() - StartTime;
-  steeringWheelPosition = steeringWheelPosition + (g.gyro.z*ElapsedTime/1000)*255/2,36;
-  if(steeringWheelPosition < -255)
-    steeringWheelPosition = -255;
-  if(steeringWheelPosition > 255)
-    steeringWheelPosition = 255;
-  Joystick.setXAxis(steeringWheelPosition);
-  
-  StartTime = millis();
- }
-
- Serial.println(ElapsedTime);
-mpu.getEvent(&a, &g, &temp);
- Serial.println(g.gyro.z); // w spoczynku odczyty max 0.1 - trzeba to uciąć
- delay(300);*/
-
 }
