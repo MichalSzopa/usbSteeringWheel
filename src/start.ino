@@ -1,10 +1,9 @@
 #include <Joystick.h>
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
-#include <Wire.h>
+//#include <Wire.h>
 #include <math.h>
 #include <TM1638plus.h>
-//#include <string>
 
 /// Joystick
 Joystick_ Joystick;
@@ -73,7 +72,7 @@ void setJoystick()
   {
     ElapsedTime = micros() - StartTime;
     //steeringWheelPosition = steeringWheelPosition - (g.gyro.z*ElapsedTime/20);
-    steeringWheelPosition = 255 * atan(a.acceleration.y / sqrt(a.acceleration.x * a.acceleration.x + a.acceleration.z * a.acceleration.z))/(M_PI/2);
+    steeringWheelPosition = -255 * atan(a.acceleration.y / sqrt(a.acceleration.x * a.acceleration.x + a.acceleration.z * a.acceleration.z))/(M_PI/2);
     if(steeringWheelPosition < -255)
       Joystick.setXAxis(-255);
     else if(steeringWheelPosition > 255)
@@ -170,7 +169,6 @@ void setup() {
   tm.displayBegin();
 
   /// Joystick part
-  
   // Initialize Button Pins
   pinMode(4, INPUT_PULLUP);
   
@@ -181,19 +179,19 @@ void setup() {
 
   /// Accelerometer part
     
-  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
   mpu.setGyroRange(MPU6050_RANGE_500_DEG);
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
   mpu.begin();
 
   if(a.acceleration.x > 0)
   {
-    steeringWheelPosition = 255 * atan(a.acceleration.y / a.acceleration.x)/(M_PI/2);
+    steeringWheelPosition = -255 * atan(a.acceleration.y / a.acceleration.x)/(M_PI/2);
     //steeringWheelPosition = 255 * atan(a.acceleration.x / sqrt(a.acceleration.y * a.acceleration.y + a.acceleration.z * a.acceleration.z))/(M_PI/2);
     Joystick.setXAxis(steeringWheelPosition);
   }
 
-  StartTime = micros();
+  //StartTime = micros();
 }
 
 
@@ -202,7 +200,7 @@ void loop() {
 for(int j=0; j<3; j++)
  {
   readSteeringData();
-  StartTime = micros();
+  //StartTime = micros();
   setJoystick();
  }
 
